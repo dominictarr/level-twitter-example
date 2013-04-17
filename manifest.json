@@ -1,0 +1,124 @@
+{
+  "methods": {
+    "createLiveStream": {
+      "type": "readable"
+    },
+    "liveStream": {
+      "type": "readable"
+    }
+  },
+  "sublevels": {
+    "feed": {
+      "methods": {
+        "createLiveStream": {
+          "type": "readable"
+        },
+        "liveStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "feed",
+      "sublevels": {}
+    },
+    "follow": {
+      "methods": {
+        "createLiveStream": {
+          "type": "readable"
+        },
+        "liveStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "follow",
+      "sublevels": {}
+    },
+    "tweet": {
+      "methods": {
+        "createLiveStream": {
+          "type": "readable"
+        },
+        "liveStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "tweet",
+      "sublevels": {
+        "_fanout": {
+          "methods": {},
+          "_sep": "ÿ",
+          "_prefix": "_fanout",
+          "sublevels": {}
+        },
+        "maps": {
+          "methods": {},
+          "_sep": "ÿ",
+          "_prefix": "maps",
+          "sublevels": {}
+        }
+      }
+    },
+    "user": {
+      "methods": {
+        "createLiveStream": {
+          "type": "readable"
+        },
+        "liveStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "user",
+      "sublevels": {
+        "maps": {
+          "methods": {},
+          "_sep": "ÿ",
+          "_prefix": "maps",
+          "sublevels": {}
+        }
+      }
+    },
+    "userSearch": {
+      "methods": {
+        "query": {
+          "type": "readable"
+        },
+        "createQueryStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "userSearch",
+      "sublevels": {
+        "mapped": {
+          "methods": {},
+          "_sep": "ÿ",
+          "_prefix": "mapped",
+          "sublevels": {}
+        }
+      }
+    },
+    "tweetSearch": {
+      "methods": {
+        "query": {
+          "type": "readable"
+        },
+        "createQueryStream": {
+          "type": "readable"
+        }
+      },
+      "_sep": "ÿ",
+      "_prefix": "tweetSearch",
+      "sublevels": {
+        "mapped": {
+          "methods": {},
+          "_sep": "ÿ",
+          "_prefix": "mapped",
+          "sublevels": {}
+        }
+      }
+    }
+  }
+}
