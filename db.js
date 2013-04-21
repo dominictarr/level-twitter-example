@@ -3,7 +3,6 @@ var levelup   = require('levelup')
 var sublevel  = require('level-sublevel')
 var trigger   = require('level-trigger')
 var timestamp = require('monotonic-timestamp')
-var pl        = require('pull-level')
 var pull      = require('pull-stream')
 var InvertedIndex
               = require('level-inverted-index')
