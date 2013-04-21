@@ -10363,14 +10363,23 @@ message('')
 
 signedIn(false)
 
+function a(classes, name, onClick) {
+  if(!onClick)
+    onClick = name, name = classes,  classes = ''
+  console.log(classes, name, onClick)
+  return h('a'+classes, name, {href: '#', onclick: function (e) {
+    console.log('CLICK')
+    onClick.call(this, e)
+    e.preventDefault()
+  }}) 
+}
+
 function toggle (v, up, down) {
   return a(
     o.boolean(v, up || 'ON', down || 'OFF'),
-    function () { v(!v()) }
+    function () { console.log('TOGGEL'); v(!v()) }
   )
 }
-
-
 
 function show (v, el, _el) {
   if(!_el)
@@ -10383,14 +10392,6 @@ function div() {
   return h('div', [].slice.call(arguments))
 }
 
-function a(classes, name, onClick) {
-  if(!onClick)
-    name = classes, onClick = name, classes = ''
-  return h('a'+classes, name, {href: '#', onclick: function (e) {
-    onClick.call(this, e)
-    e.preventDefault()
-  }}) 
-}
 
 function signUp () {
   var un = h('input#username', {placeholder: 'username'})
