@@ -1,8 +1,9 @@
 #! /usr/bin/env bash
-echo $PATH
 
 . ~/.bashrc
 . ~/.profile
+
+echo $PATH
 
 node -v
 npm -v
