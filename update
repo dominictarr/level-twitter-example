@@ -2,6 +2,10 @@
 echo $PATH
 
 . ~/.bashrc
+. ~/.profile
+
+node -v
+npm -v
 
 #reinstall if modules are out of date!
 npm ls || npm install
