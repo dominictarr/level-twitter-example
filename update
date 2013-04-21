@@ -7,6 +7,6 @@ npm ls || npm install
 
 pkill -9 node
 nohup node server.js >> ../level-twitter.log  2>> ../level-twitter.err.log &
-//nohup proxy80 4567 &
+#nohup proxy80 4567 &
 
 
