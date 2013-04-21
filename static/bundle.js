@@ -10130,6 +10130,907 @@ module.exports = function (map) {
 
 });
 
+require.define("/node_modules/dom-vector/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
+});
+
+require.define("/node_modules/dom-vector/index.js",function(require,module,exports,__dirname,__filename,process,global){var Vec2 = require('vec2')
+var Rec2 = require('rec2')
+
+var mouse, scroll, screen
+
+var element =
+exports.element = function (el) {
+  var rec = el.getBoundingClientRect()    
+  var rec2 = new Rec2
+  rec2.set(rec.left, rec.top)
+  //check if it's actually a Rec2 - if it's a vec2
+  //skip this step.
+  if(rec2.size)
+    rec2.size.set(rec.width, rec.height)
+  return rec2
+}
+
+exports.mouseEvent = function (ev) {
+  return new Vec2(ev.clientX, ev.clientY)
+}
+
+//var style = getComputedStyle(el)
+// + parseFloat(style['margin-top'])
+// + parseFloat(style['margin-left'])
+
+var elementRec2 = function (el) {
+  var rec = el.getBoundingClientRect()    
+  var style = getComputedStyle(el)
+  return new Rec2(
+    rec.left - parseFloat(style.left),
+    rec.top - parseFloat(style.top),
+    rec.width, rec.height
+  )
+}
+
+function mouseEvent (ev) {
+  var vec = new Vec2()
+  return vec.set(ev.clientX, ev.clientY)
+}
+
+exports.mouse = function () {
+  if(mouse) return mouse
+  mouse = new Vec2()
+  window.addEventListener('mousemove', function (e) {
+    mouse.set(e.clientX, e.clientY)
+  })
+  return mouse
+}
+
+exports.scroll = function () {
+  if(scroll) return scroll
+  scroll = new Vec2()
+  scroll.set(e.clientX, e.clientY)
+  window.addEventListener('scroll', function (e) {
+    scroll.set(window.scrollX, window.scrollY)
+  })
+}
+
+exports.screenSize = function () {
+  if(size) return size
+  size = new Vec2()
+  window.addEventListener('resize', function (e) {
+    size.set(window.innerWidth, window.innerHeight)
+  })
+}
+
+
+//if bind=true this will make the element
+//track the position of the Vec2,
+//and will work around the DOM qwerk that
+
+exports.absolute = function (el, bind) {
+  var absolute =
+    element(el).subtract(element(el.parentElement))
+
+  if(bind) {
+    el.style.position = 'absolute'
+    function place () {
+      el.style.left = absolute.x + 'px'
+      el.style.top  = absolute.y + 'px'
+    }
+    absolute.change(place)
+    el.style.bottom = ''
+    el.style.right  = ''
+  }
+  return absolute
+}
+
+
+});
+
+require.define("/node_modules/dom-vector/node_modules/vec2/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"lib/vec2.js"}
+});
+
+require.define("/node_modules/dom-vector/node_modules/vec2/lib/vec2.js",function(require,module,exports,__dirname,__filename,process,global){;(function inject(clean, precision, undef) {
+
+  function Vec2(x, y) {
+    if (!(this instanceof Vec2)) {
+      return new Vec2(x, y);
+    }
+    this.set(x || 0, y || 0);
+  };
+
+  Vec2.prototype = {
+    change : function(fn) {
+      if (fn) {
+        if (this.observers) {
+          this.observers.push(fn);
+        } else {
+          this.observers = [fn];
+        }
+      } else if (this.observers) {
+        for (var i=this.observers.length-1; i>=0; i--) {
+          this.observers[i](this);
+        }
+      }
+
+      return this;
+    },
+
+    ignore : function(fn) {
+      this.observers = this.observers.filter(function(cb) {
+        return cb !== fn;
+      });
+
+      return this;
+    },
+
+    dirty : function() {
+      var cacheKeys = ['__cachedLength', '__cachedLengthSquared'];
+      for (var i=0, l=cacheKeys.length; i<l; i++) {
+        this[cacheKeys[i]] = null;
+      }
+    },
+
+    // set x and y
+    set: function(x, y, silent) {
+      if(x && 'object' === typeof x) {
+        silent = y;
+        y = x.y;
+        x = x.x;
+      }
+      x = Vec2.clean(x)
+      y = Vec2.clean(y)
+      if(this.x === x && this.y === y)
+        return this;
+      this.x = x;
+      this.y = y;
+      this.dirty();
+      if(silent !== false)
+        return this.change();
+    },
+
+    // reset x and y to zero
+    zero : function() {
+      return this.set(0, 0);
+    },
+
+    // return a new vector with the same component values
+    // as this one
+    clone : function() {
+      return new Vec2(this.x, this.y);
+    },
+
+    // negate the values of this vector
+    negate : function(returnNew) {
+      if (returnNew) {
+        return new Vec2(-this.x, -this.y);
+      } else {
+        return this.set(-this.x, -this.y);
+      }
+    },
+
+    // Add the incoming `vec2` vector to this vector
+    add : function(vec2, returnNew) {
+      if (!returnNew) {
+        return this.set(this.x + vec2.x, this.y + vec2.y);
+      } else {
+        // Return a new vector if `returnNew` is truthy
+        return new Vec2(
+          this.x + vec2.x,
+          this.y + vec2.y
+        );
+      }
+    },
+
+    // Subtract the incoming `vec2` from this vector
+    subtract : function(vec2, returnNew) {
+      if (!returnNew) {
+        return this.set(this.x - vec2.x, this.y - vec2.y)
+      } else {
+        // Return a new vector if `returnNew` is truthy
+        return new Vec2(
+          this.x - vec2.x,
+          this.y - vec2.y
+        );
+      }
+    },
+
+    // Multiply this vector by the incoming `vec2`
+    multiply : function(vec2, returnNew) {
+      var x,y;
+      if (vec2.x !== undef) {
+        x = vec2.x;
+        y = vec2.y;
+
+      // Handle incoming scalars
+      } else {
+        x = y = vec2;
+      }
+
+      if (!returnNew) {
+        return this.set(this.x * x, this.y * y);
+      } else {
+        return new Vec2(
+          this.x * x,
+          this.y * y
+        );
+      }
+    },
+
+    // Rotate this vector. Accepts a `Rotation` or angle in radians.
+    //
+    // Passing a truthy `inverse` will cause the rotation to
+    // be reversed.
+    //
+    // If `returnNew` is truthy, a new
+    // `Vec2` will be created with the values resulting from
+    // the rotation. Otherwise the rotation will be applied
+    // to this vector directly, and this vector will be returned.
+    rotate : function(r, inverse, returnNew) {
+      var
+      x = this.x,
+      y = this.y,
+      cos = Math.cos(r),
+      sin = Math.sin(r),
+      rx, ry;
+
+      inverse = (inverse) ? -1 : 1;
+
+      rx = cos * x - (inverse * sin) * y;
+      ry = (inverse * sin) * x + cos * y;
+
+      if (returnNew) {
+        return new Vec2(rx, ry);
+      } else {
+        return this.set(rx, ry);
+      }
+    },
+
+    // Calculate the length of this vector
+    __cachedLength : null,
+    length : function() {
+      if (this.__cachedLength === null) {
+        var x = this.x, y = this.y;
+        this.__cachedLength = Math.sqrt(x * x + y * y);
+      }
+      return this.__cachedLength
+    },
+
+    // Get the length squared. For performance, use this instead of `Vec2#length` (if possible).
+    __cachedLengthSquared : null,
+    lengthSquared : function() {
+      if (this.__cachedLengthSquared === null) {
+        var x = this.x, y = this.y;
+        this.__cachedLengthSquared = Vec2.clean(x * x + y * y);
+      }
+      return this.__cachedLengthSquared;
+    },
+
+    // Return the distance betwen this `Vec2` and the incoming vec2 vector
+    // and return a scalar
+    distance : function(vec2) {
+      return this.subtract(vec2, true).length();
+    },
+
+    // Convert this vector into a unit vector.
+    // Returns the length.
+    normalize : function(returnNew) {
+      var length = this.length();
+
+      // Collect a ratio to shrink the x and y coords
+      var invertedLength = (length < Number.MIN_VALUE) ? 0 : 1/length;
+
+      if (!returnNew) {
+        // Convert the coords to be greater than zero
+        // but smaller than or equal to 1.0
+        return this.set(this.x * invertedLength, this.y * invertedLength);
+      } else {
+        return new Vec2(this.x * invertedLength, this.y * invertedLength)
+      }
+    },
+
+    // Determine if another `Vec2`'s components match this one's
+    // also accepts 2 scalars
+    equal : function(v, w) {
+      if (w === undef) {
+        return (
+          this.x === v.x &&
+          this.y == v.y
+        );
+      } else {
+        return (
+          this.x === v &&
+          this.y === w
+        )
+      }
+    },
+
+    // Return a new `Vec2` that contains the absolute value of
+    // each of this vector's parts
+    abs : function(returnNew) {
+      var x = Math.abs(this.x), y = Math.abs(this.y);
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Return a new `Vec2` consisting of the smallest values
+    // from this vector and the incoming
+    //
+    // When returnNew is truthy, a new `Vec2` will be returned
+    // otherwise the minimum values in either this or `v` will
+    // be applied to this vector.
+    min : function(v, returnNew) {
+      var
+      tx = this.x,
+      ty = this.y,
+      vx = v.x,
+      vy = v.y,
+      x = tx < vx ? tx : vx,
+      y = ty < vy ? ty : vy;
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Return a new `Vec2` consisting of the largest values
+    // from this vector and the incoming
+    //
+    // When returnNew is truthy, a new `Vec2` will be returned
+    // otherwise the minimum values in either this or `v` will
+    // be applied to this vector.
+    max : function(v, returnNew) {
+      var
+      tx = this.x,
+      ty = this.y,
+      vx = v.x,
+      vy = v.y,
+      x = tx > vx ? tx : vx,
+      y = ty > vy ? ty : vy;
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Clamp values into a range.
+    // If this vector's values are lower than the `low`'s
+    // values, then raise them.  If they are higher than
+    // `high`'s then lower them.
+    //
+    // Passing returnNew as true will cause a new Vec2 to be
+    // returned.  Otherwise, this vector's values will be clamped
+    clamp : function(low, high, returnNew) {
+      var ret = this.min(high, true).max(low)
+      if (returnNew) {
+        return ret;
+      } else {
+        return this.set(ret.x, ret.y);
+      }
+    },
+
+    // Perform linear interpolation between two vectors
+    // amount is a decimal between 0 and 1
+    lerp : function(vec, amount) {
+      return this.add(vec.subtract(this, true).multiply(amount), true);
+    },
+
+    // Get the skew vector such that dot(skew_vec, other) == cross(vec, other)
+    skew : function() {
+      // Returns a new vector.
+      return new Vec2(-this.y, this.x)
+    },
+
+    // calculate the dot product between
+    // this vector and the incoming
+    dot : function(b) {
+      return Vec2.clean(this.x * b.x + b.y * this.y);
+    },
+
+    // calculate the perpendicular dot product between
+    // this vector and the incoming
+    perpDot : function(b) {
+      return Vec2.clean(this.x * b.y - this.y * b.x)
+    },
+
+    // Determine the angle between two vec2s
+    angleTo : function(vec) {
+      return Math.atan2(this.perpDot(vec), this.dot(vec));
+    },
+
+    // Divide this vector's components by a scalar
+    divide : function(scalar, returnNew) {
+      if (scalar === 0 || isNaN(scalar)) {
+        throw new Error('division by zero')
+      }
+
+      if (returnNew) {
+        return new Vec2(this.x/scalar, this.y/scalar);
+      }
+
+      return this.set(this.x / scalar, this.y / scalar);
+    },
+
+    toArray: function() {
+      return [this.x, this.y];
+    },
+
+    fromArray: function(array) {
+      return this.set(array[0], array[1]);
+    },
+    toJSON: function () {
+      return {x: this.x, y: this.y}
+    }
+  };
+
+  Vec2.fromArray = function(array) {
+    return new Vec2(array[0], array[1]);
+  };
+
+  // Floating point stability
+  Vec2.precision = precision || 8;
+  var p = Math.pow(10, Vec2.precision)
+
+  Vec2.clean = clean || function(val) {
+    if (isNaN(val)) {
+      throw new Error('NaN detected')
+    }
+
+    if (!isFinite(val)) {
+      throw new Error('Infinity detected');
+    }
+
+    if(Math.round(val) === val) {
+      return val;
+    }
+
+    return Math.round(val * p)/p;
+  };
+  Vec2.inject = inject;
+
+  // Expose, but also allow creating a fresh Vec2 subclass.
+  if (typeof module !== 'undefined' && typeof module.exports == 'object') {
+    module.exports = Vec2;
+  } else {
+    window.Vec2 = window.Vec2 || Vec2;
+  }
+  return Vec2
+})();
+
+
+
+});
+
+require.define("/node_modules/dom-vector/node_modules/rec2/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
+});
+
+require.define("/node_modules/dom-vector/node_modules/rec2/index.js",function(require,module,exports,__dirname,__filename,process,global){var Vec2 = require('vec2')
+
+var inherits = require('util').inherits
+
+inherits(Rec2, Vec2)
+
+module.exports = Rec2
+
+function Rec2 (x, y, w, h) {
+  if(!(this instanceof Rec2)) return new Rec2(x, y, w, h)
+  x = x || 0
+  y = y || 0
+  w = w || 0
+  h = h || 0
+  console.log(x, y, w, h)
+  this.set(0, 0)
+  var self = this
+  var size = this.size = new Vec2(w, h)
+  var bound = this.bound = new Vec2(x + w)
+  size.change(function (x, y) {
+    bound.set(self.x + size.x, self.y + size.y)
+  })
+  bound.change(function (x, y) {
+    size.set(bound.x - self.x, bound.y - self.y)
+  })
+
+}
+
+var R = Rec2.prototype
+
+R.contained = function (point) {
+  return (
+    this.x <= point.x && point.x <= this.bound.x 
+  &&
+    this.y <= point.y && point.y <= this.bound.y   
+  )
+}
+
+R.collide = function (box) {
+  return (
+      (this.x <= box.x       && box.x       <= this.bound.x
+    || this.x <= box.bound.x && box.bound.x <= this.bound.x)
+    &&(this.y <= box.y       &&       box.y <= this.bound.y
+    || this.y <= box.bound.y && box.bound.y <= this.bound.y)
+  )
+}
+
+});
+
+require.define("/node_modules/dom-vector/node_modules/rec2/node_modules/vec2/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"lib/vec2.js"}
+});
+
+require.define("/node_modules/dom-vector/node_modules/rec2/node_modules/vec2/lib/vec2.js",function(require,module,exports,__dirname,__filename,process,global){;(function(undef) {
+
+  function Vec2(x, y) {
+    if (!(this instanceof Vec2)) {
+      return new Vec2(x, y);
+    }
+    this.set(x || 0, y || 0);
+  };
+
+  Vec2.prototype = {
+    change : function(fn) {
+      if (fn) {
+        if (this.observers) {
+          this.observers.push(fn);
+        } else {
+          this.observers = [fn];
+        }
+      } else if (this.observers) {
+        for (var i=this.observers.length-1; i>=0; i--) {
+          this.observers[i](this);
+        }
+      }
+
+      return this;
+    },
+
+    ignore : function(fn) {
+      this.observers = this.observers.filter(function(cb) {
+        return cb !== fn;
+      });
+
+      return this;
+    },
+
+    dirty : function() {
+      var cacheKeys = ['__cachedLength', '__cachedLengthSquared'];
+      for (var i=0, l=cacheKeys.length; i<l; i++) {
+        this[cacheKeys[i]] = null;
+      }
+    },
+
+    // set x and y
+    set : function(x, y) {
+      x = Vec2.clean(x)
+      y = Vec2.clean(y)
+      if(this.x === x && this.y === y)
+        return this
+      this.x = x;
+      this.y = y;
+      this.dirty();
+      return this.change();
+    },
+
+    // reset x and y to zero
+    zero : function() {
+      return this.set(0, 0);
+    },
+
+    // return a new vector with the same component values
+    // as this one
+    clone : function() {
+      return new Vec2(this.x, this.y);
+    },
+
+    // negate the values of this vector
+    negate : function(returnNew) {
+      if (returnNew) {
+        return new Vec2(-this.x, -this.y);
+      } else {
+        return this.set(-this.x, -this.y);
+      }
+    },
+
+    // Add the incoming `vec2` vector to this vector
+    add : function(vec2, returnNew) {
+      if (!returnNew) {
+        return this.set(this.x + vec2.x, this.y + vec2.y);
+      } else {
+        // Return a new vector if `returnNew` is truthy
+        return new Vec2(
+          this.x + vec2.x,
+          this.y + vec2.y
+        );
+      }
+    },
+
+    // Subtract the incoming `vec2` from this vector
+    subtract : function(vec2, returnNew) {
+      if (!returnNew) {
+        this.x -= vec2.x;
+        this.y -= vec2.y;
+        return this;
+      } else {
+        // Return a new vector if `returnNew` is truthy
+        return new Vec2(
+          this.x - vec2.x,
+          this.y - vec2.y
+        );
+      }
+    },
+
+    // Multiply this vector by the incoming `vec2`
+    multiply : function(vec2, returnNew) {
+      var x,y;
+      if (vec2.x !== undef) {
+        x = vec2.x;
+        y = vec2.y;
+
+      // Handle incoming scalars
+      } else {
+        x = y = vec2;
+      }
+
+      if (!returnNew) {
+        return this.set(this.x * x, this.y * y);
+      } else {
+        return new Vec2(
+          this.x * x,
+          this.y * y
+        );
+      }
+    },
+
+    // Rotate this vector. Accepts a `Rotation` or angle in radians.
+    //
+    // Passing a truthy `inverse` will cause the rotation to
+    // be reversed.
+    //
+    // If `returnNew` is truthy, a new
+    // `Vec2` will be created with the values resulting from
+    // the rotation. Otherwise the rotation will be applied
+    // to this vector directly, and this vector will be returned.
+    rotate : function(r, inverse, returnNew) {
+      var
+      x = this.x,
+      y = this.y,
+      cos = Math.cos(r),
+      sin = Math.sin(r),
+      rx, ry;
+
+      inverse = (inverse) ? -1 : 1;
+
+      rx = cos * x - (inverse * sin) * y;
+      ry = (inverse * sin) * x + cos * y;
+
+      if (returnNew) {
+        return new Vec2(rx, ry);
+      } else {
+        return this.set(rx, ry);
+      }
+    },
+
+    // Calculate the length of this vector
+    __cachedLength : null,
+    length : function() {
+      if (this.__cachedLength === null) {
+        var x = this.x, y = this.y;
+        this.__cachedLength = Math.sqrt(x * x + y * y);
+      }
+      return this.__cachedLength
+    },
+
+    // Get the length squared. For performance, use this instead of `Vec2#length` (if possible).
+    __cachedLengthSquared : null,
+    lengthSquared : function() {
+      if (this.__cachedLengthSquared === null) {
+        var x = this.x, y = this.y;
+        this.__cachedLengthSquared = Vec2.clean(x * x + y * y);
+      }
+      return this.__cachedLengthSquared;
+    },
+
+    // Return the distance betwen this `Vec2` and the incoming vec2 vector
+    // and return a scalar
+    distance : function(vec2) {
+      return this.subtract(vec2, true).length();
+    },
+
+    // Convert this vector into a unit vector.
+    // Returns the length.
+    normalize : function(returnNew) {
+      var length = this.length();
+
+      // Collect a ratio to shrink the x and y coords
+      var invertedLength = (length < Number.MIN_VALUE) ? 0 : 1/length;
+
+      if (!returnNew) {
+        // Convert the coords to be greater than zero
+        // but smaller than or equal to 1.0
+        return this.set(this.x * invertedLength, this.y * invertedLength);
+      } else {
+        return new Vec2(this.x * invertedLength, this.y * invertedLength)
+      }
+    },
+
+    // Determine if another `Vec2`'s components match this one's
+    // also accepts 2 scalars
+    equal : function(v, w) {
+      if (w === undef) {
+        return (
+          this.x === v.x &&
+          this.y == v.y
+        );
+      } else {
+        return (
+          this.x === v &&
+          this.y === w
+        )
+      }
+    },
+
+    // Return a new `Vec2` that contains the absolute value of
+    // each of this vector's parts
+    abs : function(returnNew) {
+      var x = Math.abs(this.x), y = Math.abs(this.y);
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Return a new `Vec2` consisting of the smallest values
+    // from this vector and the incoming
+    //
+    // When returnNew is truthy, a new `Vec2` will be returned
+    // otherwise the minimum values in either this or `v` will
+    // be applied to this vector.
+    min : function(v, returnNew) {
+      var
+      tx = this.x,
+      ty = this.y,
+      vx = v.x,
+      vy = v.y,
+      x = tx < vx ? tx : vx,
+      y = ty < vy ? ty : vy;
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Return a new `Vec2` consisting of the largest values
+    // from this vector and the incoming
+    //
+    // When returnNew is truthy, a new `Vec2` will be returned
+    // otherwise the minimum values in either this or `v` will
+    // be applied to this vector.
+    max : function(v, returnNew) {
+      var
+      tx = this.x,
+      ty = this.y,
+      vx = v.x,
+      vy = v.y,
+      x = tx > vx ? tx : vx,
+      y = ty > vy ? ty : vy;
+
+      if (returnNew) {
+        return new Vec2(x, y);
+      } else {
+        return this.set(x, y);
+      }
+    },
+
+    // Clamp values into a range.
+    // If this vector's values are lower than the `low`'s
+    // values, then raise them.  If they are higher than
+    // `high`'s then lower them.
+    //
+    // Passing returnNew as true will cause a new Vec2 to be
+    // returned.  Otherwise, this vector's values will be clamped
+    clamp : function(low, high, returnNew) {
+      var ret = this.min(high, true).max(low)
+      if (returnNew) {
+        return ret;
+      } else {
+        return this.set(ret.x, ret.y);
+      }
+    },
+
+    // Perform linear interpolation between two vectors
+    // amount is a decimal between 0 and 1
+    lerp : function(vec, amount) {
+      return this.add(vec.subtract(this, true).multiply(amount), true);
+    },
+
+    // Get the skew vector such that dot(skew_vec, other) == cross(vec, other)
+    skew : function() {
+      // Returns a new vector.
+      return new Vec2(-this.y, this.x)
+    },
+
+    // calculate the dot product between
+    // this vector and the incoming
+    dot : function(b) {
+      return Vec2.clean(this.x * b.x + b.y * this.y);
+    },
+
+    // calculate the perpendicular dot product between
+    // this vector and the incoming
+    perpDot : function(b) {
+      return Vec2.clean(this.x * b.y - this.y * b.x)
+    },
+
+    // Determine the angle between two vec2s
+    angleTo : function(vec) {
+      return Math.atan2(this.perpDot(vec), this.dot(vec));
+    },
+
+    // Divide this vector's components by a scalar
+    divide : function(scalar, returnNew) {
+      if (scalar === 0 || isNaN(scalar)) {
+        throw new Error('division by zero')
+      }
+
+      if (returnNew) {
+        return new Vec2(this.x/scalar, this.y/scalar);
+      }
+
+      return this.set(this.x / scalar, this.y / scalar);
+    },
+
+    toArray: function() {
+      return [this.x, this.y];
+    },
+
+    fromArray: function(array) {
+      return this.set(array[0], array[1]);
+    }
+  };
+
+  Vec2.fromArray = function(array) {
+    return new Vec2(array[0], array[1]);
+  };
+
+  // Floating point stability
+  Vec2.precision = 8;
+
+  Vec2.clean = function(val) {
+    if (isNaN(val)) {
+      throw new Error('NaN detected')
+    }
+
+    if (!isFinite(val)) {
+      throw new Error('Infinity detected');
+    }
+
+    var s = '' + val;
+    var parts = s.split('.');
+
+    if (parts.length === 1) {
+      return val;
+    } else {
+      return parseFloat(parts[0] + '.' + parts[1].substring(0, Vec2.precision));
+    }
+  };
+
+  // Expose
+  if (typeof module !== 'undefined') {
+    module.exports = Vec2;
+  } else {
+    window.Vec2 = Vec2;
+  }
+})();
+
+});
+
 require.define("/manifest.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {
   "methods": {
     "createLiveStream": {
@@ -10261,12 +11162,12 @@ require.define("/manifest.json",function(require,module,exports,__dirname,__file
 require.define("/client.js",function(require,module,exports,__dirname,__filename,process,global){var multilevel = require('multilevel')
 var reconnect  = require('reconnect')
 var schema     = require('./twit-schema')
-//var render     = require('./render')
 var through    = require('through')
 var o          = require('observable')
 var h          = require('hyperscript')
 var odom       = require('./observables')
 var EagerCache = require('./eager-cache')
+var dvect      = require('dom-vector')
 
 var feed = h('div#feed'), db
 
@@ -10276,7 +11177,6 @@ function prepend(results, element) {
   else
     results.appendChild(element)
 }
-
 
 var followCache = EagerCache(function (_, key, emit) {
   emit(key.split('!').pop(), value ? true : null)
@@ -10368,7 +11268,6 @@ function a(classes, name, onClick) {
     onClick = name, name = classes,  classes = ''
   console.log(classes, name, onClick)
   return h('a'+classes, name, {href: '#', onclick: function (e) {
-    console.log('CLICK')
     onClick.call(this, e)
     e.preventDefault()
   }}) 
@@ -10377,7 +11276,7 @@ function a(classes, name, onClick) {
 function toggle (v, up, down) {
   return a(
     o.boolean(v, up || 'ON', down || 'OFF'),
-    function () { console.log('TOGGEL'); v(!v()) }
+    function () { v(!v()) }
   )
 }
 
@@ -10410,7 +11309,7 @@ function signUp () {
   var _su = o.input(su, 'checked', 'change')
 
   return h('div#login', {style: {
-      position: 'fixed', right: '10px', top: '10px'
+      position: 'absolute', right: '10px', top: '10px'
     }},
     show(signedIn, 
       h('div#signout',
@@ -10461,11 +11360,19 @@ function signUp () {
 
 document.body.appendChild(
   h('div#content', 
+    {style: {
+      'max-width': '800px',
+      margin: 'auto',
+      border: '1px solid black',
+//      'min-height': ,
+      position: 'relative'
+    }},
     signUp(),
     h('h1', 'level-twitter', h('div#message', message)),
     h('h2', '@', username),
     h('div#nav',
       h('input#search_input', {
+        placeholder: 'search',
         onkeydown: function (e) {
           if(!db) return //not connected.
           if(e.keyCode === 13) {//Enter
@@ -10477,6 +11384,7 @@ document.body.appendChild(
     h('div.tab#feed', 
       h('div#send',
         send = h('textarea', {rows: 3, cols: 50, 
+          placeholder: 'tweet',
           onkeydown: function (e) {
             if(!db) return //not connected.
             if(e.keyCode === 13) {//Enter
