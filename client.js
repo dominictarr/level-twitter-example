@@ -1,7 +1,6 @@
 var multilevel = require('multilevel')
 var reconnect  = require('reconnect')
 var schema     = require('./twit-schema')
-//var render     = require('./render')
 var through    = require('through')
 var o          = require('observable')
 var h          = require('hyperscript')
@@ -16,7 +15,6 @@ function prepend(results, element) {
   else
     results.appendChild(element)
 }
-
 
 var followCache = EagerCache(function (_, key, emit) {
   emit(key.split('!').pop(), value ? true : null)
@@ -103,14 +101,22 @@ message('')
 
 signedIn(false)
 
+function a(classes, name, onClick) {
+  if(!onClick)
+    onClick = name, name = classes,  classes = ''
+  console.log(classes, name, onClick)
+  return h('a'+classes, name, {href: '#', onclick: function (e) {
+    onClick.call(this, e)
+    e.preventDefault()
+  }}) 
+}
+
 function toggle (v, up, down) {
   return a(
     o.boolean(v, up || 'ON', down || 'OFF'),
     function () { v(!v()) }
   )
 }
-
-
 
 function show (v, el, _el) {
   if(!_el)
@@ -123,14 +129,6 @@ function div() {
   return h('div', [].slice.call(arguments))
 }
 
-function a(classes, name, onClick) {
-  if(!onClick)
-    name = classes, onClick = name, classes = ''
-  return h('a'+classes, name, {href: '#', onclick: function (e) {
-    onClick.call(this, e)
-    e.preventDefault()
-  }}) 
-}
 
 function signUp () {
   var un = h('input#username', {placeholder: 'username'})
