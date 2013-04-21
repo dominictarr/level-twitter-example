@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-. ~/.bashrc
-. ~/.profile
-cat ~/.bashrc
 echo $PATH
 
 node -v
