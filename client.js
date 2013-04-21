@@ -23,6 +23,9 @@ var followCache = EagerCache(function (_, key, emit) {
 
 var followStream
 
+var _usersOnly = h('input', {type: 'checkbox'})
+var usersOnly = o.input(_usersOnly, 'checked', 'change')
+
 reconnect(function (stream) {
   var qs
   db = schema(multilevel.client(require('./manifest.json')))
@@ -43,8 +46,11 @@ reconnect(function (stream) {
         prepend(feed, render(data.value))
       })
     } else if (type = '?') {
+      var usersOnly = /^@/.test(query[0])
+      if(usersOnly)
+        query[0] = query[0].substring(1)
       qs = merge([
-        db.sublevel('tweetSearch')
+        usersOnly ? null : db.sublevel('tweetSearch')
           .createQueryStream(query, {tail: true}),
         db.sublevel('userSearch')
           .createQueryStream(query, {tail: true})
@@ -82,6 +88,7 @@ var send
 function merge (streams) {
   var dest = through(), n
   streams.forEach(function (stream) {
+    if(!stream) return
     n ++
     stream.on('data', function (d) {
       dest.write(d)
@@ -203,7 +210,6 @@ document.body.appendChild(
       'max-width': '800px',
       margin: 'auto',
       border: '1px solid black',
-//      'min-height': ,
       position: 'relative'
     }},
     signUp(),
