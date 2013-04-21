@@ -6,6 +6,7 @@ var o          = require('observable')
 var h          = require('hyperscript')
 var odom       = require('./observables')
 var EagerCache = require('./eager-cache')
+var dvect      = require('dom-vector')
 
 var feed = h('div#feed'), db
 
@@ -147,7 +148,7 @@ function signUp () {
   var _su = o.input(su, 'checked', 'change')
 
   return h('div#login', {style: {
-      position: 'fixed', right: '10px', top: '10px'
+      position: 'absolute', right: '10px', top: '10px'
     }},
     show(signedIn, 
       h('div#signout',
@@ -198,11 +199,19 @@ function signUp () {
 
 document.body.appendChild(
   h('div#content', 
+    {style: {
+      'max-width': '800px',
+      margin: 'auto',
+      border: '1px solid black',
+//      'min-height': ,
+      position: 'relative'
+    }},
     signUp(),
     h('h1', 'level-twitter', h('div#message', message)),
     h('h2', '@', username),
     h('div#nav',
       h('input#search_input', {
+        placeholder: 'search',
         onkeydown: function (e) {
           if(!db) return //not connected.
           if(e.keyCode === 13) {//Enter
@@ -214,6 +223,7 @@ document.body.appendChild(
     h('div.tab#feed', 
       h('div#send',
         send = h('textarea', {rows: 3, cols: 50, 
+          placeholder: 'tweet',
           onkeydown: function (e) {
             if(!db) return //not connected.
             if(e.keyCode === 13) {//Enter
