@@ -2,7 +2,7 @@
 
 . ~/.bashrc
 . ~/.profile
-
+cat ~/.bashrc
 echo $PATH
 
 node -v
