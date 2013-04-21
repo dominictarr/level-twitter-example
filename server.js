@@ -18,7 +18,7 @@ shoe(function (stream) {
 })
 .install(
   http.createServer(ecstatic(__dirname + '/static'))
-  .listen(3000),
+  .listen(process.env.PORT || 3000),
   {prefix: '/multilevel'}
 )
 
