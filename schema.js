@@ -11,6 +11,7 @@ function merge (to, from) {
   }
   return to
 }
+
 var isClient = false
 module.exports = function (db) {
   var types = db.types = {}
@@ -38,8 +39,7 @@ module.exports = function (db) {
         return obj[key]
       }).join('!')
     else key = obj.id
-    console.log('PREFIX', db.sublevel(obj.type).prefix())
-    console.log('KEY---', key)
+
     return {
       key: key, value: obj, type: 'put',
       prefix: db.sublevel(obj.type).prefix()
@@ -53,6 +53,11 @@ module.exports = function (db) {
       obj = [prepare(obj)]
 
     db.batch(obj, cb)
+  }
+
+  db.remove = function (obj, cb) {
+    //must have enough to get a primary key...
+    
   }
 
   db.queryStream = function (query, opts) {

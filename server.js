@@ -7,14 +7,14 @@ var db         = schema(require('./db')('/tmp/twitter-example-test'))
 var multilevel = require('multilevel')
 var manifest   = require('level-manifest')
 var fs         = require('fs')
-
-console.log(db)
+var auth       = require('./auth')
 
 fs.writeFileSync('./manifest.json', JSON.stringify(manifest(db, true), null, 2))
 
+var _auth = auth(db)
 
 shoe(function (stream) {
-  stream.pipe(multilevel.server(db).on('data', console.log)).pipe(stream)
+  stream.pipe(multilevel.server(db, _auth).on('data', console.log)).pipe(stream)
 })
 .install(
   http.createServer(ecstatic(__dirname + '/static'))
