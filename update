@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 echo $PATH
 
+. ~/.bashrc
+
 #reinstall if modules are out of date!
 npm ls || npm install
 #run server
