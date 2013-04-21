@@ -6,7 +6,7 @@ var timestamp = require('monotonic-timestamp')
 var pull      = require('pull-stream')
 var InvertedIndex
               = require('level-inverted-index')
-
+var pl        = require('pull-level')
 var schema    = require('./twit-schema')
 
 module.exports = function (path) {
