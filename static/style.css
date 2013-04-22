@@ -1,0 +1,115 @@
+
+#content {
+  background: #eef;
+  max-width: 900px;
+  margin: auto;
+  padding-bottom: 100px;
+  position: relative;
+  border: solid 1px grey;
+  box-shadow: 0px 0px 700px hsla(200, 90%, 5%, 0.9);
+  min-height: 200px;
+  border-radius: 4px;
+}
+
+body {
+  background: #fff;
+}
+
+#login {
+  border: 1px solid hsla(45, 10%, 0%, 0.1);
+  padding: 2.5px;
+  background: white;
+  box-shadow: 3px 3px 7px hsla(0, 00%, 50%, 0.3);
+  position: absolute;
+  right      : 6px;
+  top        : 50px;
+  border-radius: 2px;
+}
+
+#feed {
+  width: 410px;
+  margin: auto;
+  font-size: 20px;
+  box-shadow: 0px 0px 150px hsla(0, 00%, 50%, 0.3);
+  background: hsla(0, 0%, 0%, 0.0);
+  padding: 4px;
+}
+
+textarea {
+  width: 400px;
+  margin:0px;
+  height: 60px;
+  font-size:16px;
+  padding: 0px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  box-shadow: 3px 3px 7px hsla(0, 00%, 50%, 0.3);
+  background: #fafafa;
+  border: 1px solid hsla(45, 10%, 0%, 0.1);
+  display: block;
+  position: relative;
+  left: 0px;
+  color: #555;
+  padding: 9px;
+}
+
+h1 input {
+  font-size: 24px;
+  border-radius: 8px;
+  margin: 5px;
+  background: #fafafa
+}
+
+h1 { 
+  border-radius-top: 4px;
+  border-bottom: grey;
+  padding: 1px;
+}
+
+#send {
+  width: 400px;
+  margin: auto;
+}
+
+#feed .item, textarea {
+  width: 400px;
+  margin: auto;
+  padding: 3px;
+  border-radius: 5px;
+  background: #fafafa;
+  color: #555;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  box-shadow: 3px 3px 5px hsla(0, 00%, 50%, 0.1);
+  background: #fafafa;
+  border: 1px solid hsla(45, 10%, 0%, 0.1);
+  display: block;
+  font-size: 18px;
+}
+
+#feed .title {}
+
+#feed .message {
+  font-size: 16px;
+}
+
+.meta {
+  font-size: 12px;
+  float: right;
+  margin: 0px;
+  padding: 0px;
+  right: 10px;
+}
+
+h1 {
+  background: #black;
+  color: #aaa;
+}
+
+h1 {
+  margin-top: 0px;
+  color: #ccc;
+  text-shadow: 2px 3px 6px hsla(4, 20%, 50%, 0.5);
+  background:  hsla(4, 50%, 0%, 1);
+}
+
