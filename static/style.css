@@ -57,13 +57,26 @@ h1 input {
   font-size: 24px;
   border-radius: 8px;
   margin: 5px;
-  background: #fafafa
+  background: #fafafa;
 }
 
 h1 { 
   border-radius-top: 4px;
   border-bottom: grey;
   padding: 1px;
+}
+
+h1 span {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.focus {
+//  box-shadow: 0px 0px 10px #444;
+//  background: #222;
+  //border-radius: 4px;
+  border-right: 1px solid #444;
+  border-left: 1px solid #444;
 }
 
 #send {
