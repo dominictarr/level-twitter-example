@@ -19,7 +19,6 @@ function rdate(d) {
   return rd
 }
 
-
 var feed = h('div'), db
 
 function prepend(results, element) {
@@ -73,7 +72,6 @@ function asyncObservable (fun) {
 }
 
 var client = o()
-
 
 reconnect(function (stream) {
   var qs
@@ -219,7 +217,6 @@ function div() {
   return h('div', [].slice.call(arguments))
 }
 
-
 function signUp () {
   var un = h('input#username', {placeholder: 'username'})
   var em = h('input#email', {placeholder: 'email'})
@@ -266,12 +263,14 @@ function signUp () {
             if(err) {
               message(err.message)
               signedIn(false)
+              page('home')
               _p1(''); _p2('')
             }
             else {
               message('signed in!')
               signedIn(true)
               username(data.name)
+              page('home')
               odom.hash('!/'+username())
               _p1(''); _p2('')
             }
@@ -285,20 +284,18 @@ function signUp () {
 }
 
 function to(human, machine) {
-  return a(human, function () {
-    page(machine || human)
-  })
+  return a(h('span', human, {
+      className: o.transform(page, function (e) {
+        return e == human ? 'focus' : 'blur'
+      })
+    }), function () {
+      page(machine || human)
+    })
 }
 var metadata = h('div', 'meta!')
 document.body.appendChild(
   h('div#container',
     h('div#content', 
-      {style: {
-  //      'max-width': '800px',
-    //    margin: 'auto',
-      //  border: '1px solid black',
-        //position: 'relative'
-      }},
       signUp(),
       h('h1', '@', username, ' ',
         h('span', to('search'),' ', to('home'),' ', to('profile')),
