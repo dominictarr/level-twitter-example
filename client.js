@@ -7,8 +7,20 @@ var h          = require('hyperscript')
 var odom       = require('./observables')
 var EagerCache = require('./eager-cache')
 var dvect      = require('dom-vector')
+var relDate      = require('relative-date')
 
-var feed = h('div#feed'), db
+
+function rdate(d) {
+  var rd = o()
+  rd(relDate(d))
+  setInterval(function () {
+    rd(relDate(d))  
+  }, 10000)
+  return rd
+}
+
+
+var feed = h('div'), db
 
 function prepend(results, element) {
   if(results.firstChild)
@@ -26,62 +38,138 @@ var followStream
 var _usersOnly = h('input', {type: 'checkbox'})
 var usersOnly = o.input(_usersOnly, 'checked', 'change')
 
+var viewUser = o()
+var page = o() //search or user
+var query = o(), message = o(), signedIn = o()
+message('')
+signedIn(false)
+
+odom.hash(function (q) {
+  if(q) {
+    var _page = ({'?':'search', '~':'home', '@':'profile'})[q[0]]
+    _page != page() && page(_page)
+  }
+})
+
+page(function (p) {
+  odom.hash(({
+    'search':'?',
+    'home':'~',
+    'profile':'@'
+  })[p] || '')
+})
+//observable that fires once,
+//when an async operation completes.
+function asyncObservable (fun) {
+  var v = o()
+  v('')
+  var args = [].slice.call(1)
+  args.push(function (err, data) {
+    if(err) v({error: err})
+    else    v(data)
+  })
+  fun.apply(null, args)
+  return v
+}
+
+var client = o()
+
+
 reconnect(function (stream) {
   var qs
   db = schema(multilevel.client(require('./manifest.json')))
   stream.pipe(db).pipe(stream)
-  
-  var remove = odom.hash(function (hash) {
-    var query = hash.split('/')
-    var type = query.shift()
-    if(qs) qs.destroy()
-    feed.innerHTML = ''
-    if(type == '!') {
-      feed.innerHTML = ''
-      qs = db.queryStream({
-        type: 'feed', 
-        user: query[0] || 'dominictarr'
-      }, {tail: true})
-      .on('data', function (data) {
-        prepend(feed, render(data.value))
-      })
-    } else if (type = '?') {
-      var usersOnly = /^@/.test(query[0])
-      if(usersOnly)
-        query[0] = query[0].substring(1)
-      qs = merge([
-        usersOnly ? null : db.sublevel('tweetSearch')
-          .createQueryStream(query, {tail: true}),
-        db.sublevel('userSearch')
-          .createQueryStream(query, {tail: true})
-        ])
-      .on('data', function (data) {
-        feed.appendChild(render(data.value))
-      })
-    }
-
-    username(function (name) {
-      if(followStream) {
-        followStream.destroy()
-        followStream = null
-      }
-
-      ;(followStreams = db.queryStream({type: 'follow', follower: name}))
-        .on('data', function (d) {
-          console.log(d.key, d.value)})
-        .pipe(followCache)
-    })
-  })
+  client(db)
 
   db.once('close', function () {
+    client(null)
     db = null
-    remove()
   })
 
 }).connect('/multilevel')
 
 var username = o()
 username('guest')
+
+client(function (e) {
+  console.log('db', !!e)
+})
+
+o.compute([client], function (db) {
+  console.log('_db', !!db)
+})
+
+o.compute([client, username], function (db, name) {
+  console.log('follow stream')
+  if(!db) return
+  if(followStream) {
+    followStream.destroy()
+    followStream = null
+  }
+
+  ;(followStreams = db.queryStream({type: 'follow', follower: name}))
+    .on('data', function (d) {
+      console.log(d.key, d.value)
+    })
+    .pipe(followCache)
+})
+
+var qs
+o.compute([client, username, page, query], function (db, name, page, query) {
+  console.log('PAGE!', page)
+  if(!db) return
+  if(qs) qs.destroy(), qs.removeAllListeners()
+  feed.innerHTML = ''
+  if(page == 'home') {
+    console.log('HOME', name)
+    feed.innerHTML = ''
+    var seen = {}
+    qs = db.queryStream({
+      type: 'feed', 
+      user: name
+    }, {tail: true})
+    .on('data', function (data) {
+      if(seen[data.key]) return
+      seen[data.key] = true
+      console.log('HOME _RENDER', data)
+      prepend(feed, render(data.value))
+    })
+  } else if (page == 'profile') {
+    console.log('PROFILE', name)
+    feed.innerHTML = ''
+    feed.appendChild(
+      h('div', 
+      asyncObservable(function (cb) {
+        db.query({
+          type:'user', user: query || name
+        }, function (err, data) {
+          if(err)
+            cb(null, h('h2', 'unknown user :"' + (query || name) + '"'))
+          else
+            cb(null, h('h2', render(data)))
+        })
+      })
+    ))
+
+    qs = db.queryStream({type: 'tweet', user: query || name}, {tail: true})
+      .on('data', function (data) {
+        prepend(feed, render(data.value))
+      })
+  } else if (page == 'search') {
+
+    console.log('SEARCH', query, name)
+    qs = merge([
+      /*usersOnly ? null :*/ db.sublevel('tweetSearch')
+        .createQueryStream(query, {tail: true}),
+      db.sublevel('userSearch')
+        .createQueryStream(query, {tail: true})
+      ])
+    .on('data', function (data) {
+      console.log('SEARCH _RENDER', data)
+      feed.appendChild(render(data.value))
+    })
+  }
+})
 
 var send
 
@@ -104,15 +192,9 @@ function merge (streams) {
   return dest
 }
 
-var message = o(), signedIn = o()
-message('')
-
-signedIn(false)
-
 function a(classes, name, onClick) {
   if(!onClick)
     onClick = name, name = classes,  classes = ''
-  console.log(classes, name, onClick)
   return h('a'+classes, name, {href: '#', onclick: function (e) {
     onClick.call(this, e)
     e.preventDefault()
@@ -154,9 +236,7 @@ function signUp () {
   var su = h('input#signup', {type: 'checkbox'})
   var _su = o.input(su, 'checked', 'change')
 
-  return h('div#login', {style: {
-      position: 'absolute', right: '10px', top: '10px'
-    }},
+  return h('div#login',
     show(signedIn, 
       h('div#signout',
         h('a', '@', username, {href: 
@@ -204,36 +284,46 @@ function signUp () {
   )
 }
 
+function to(human, machine) {
+  return a(human, function () {
+    page(machine || human)
+  })
+}
+var metadata = h('div', 'meta!')
 document.body.appendChild(
-  h('div#content', 
-    {style: {
-      'max-width': '800px',
-      margin: 'auto',
-      border: '1px solid black',
-      position: 'relative'
-    }},
-    signUp(),
-    h('h1', 'level-twitter', h('div#message', message)),
-    h('h2', '@', username),
-    h('div#nav',
-      h('input#search_input', {
-        placeholder: 'search',
-        onkeydown: function (e) {
-          if(!db) return //not connected.
-          if(e.keyCode === 13) {//Enter
-            odom.hash('?/' + this.value)
+  h('div#container',
+    h('div#content', 
+      {style: {
+  //      'max-width': '800px',
+    //    margin: 'auto',
+      //  border: '1px solid black',
+        //position: 'relative'
+      }},
+      signUp(),
+      h('h1', '@', username, ' ',
+        h('span', to('search'),' ', to('home'),' ', to('profile')),
+        ' ',
+        h('input#search_input', {
+          placeholder: 'search',
+          onkeydown: function (e) {
+            if(!db) return //not connected.
+            if(e.keyCode === 13) {//Enter
+              query(this.value); page('search')
+              //odom.hash('?/' + this.value)
+            }
           }
-        }
-      })
-    ),
-    h('div.tab#feed', 
-      h('div#send',
-        send = h('textarea', {rows: 3, cols: 50, 
+        })
+      ),
+      h('div#message', message),
+      h('div#feed',
+        send = h('textarea', {//rows: 3, cols: 46, 
+  //        style: {width: '90%', margin: 'auto'},
           placeholder: 'tweet',
           onkeydown: function (e) {
             if(!db) return //not connected.
             if(e.keyCode === 13) {//Enter
               var tweet = {type: 'tweet', user: username(), message: e.target.value}
+              console.log('SAVE')
               db.save(tweet,
                 function (err) {
                   if(!err) send.value = ''
@@ -241,13 +331,12 @@ document.body.appendChild(
                 })
             }
           }}
-        )
-      ),
-      feed
+        ),
+        feed
+      )
     )
   )
 )
-
 function followLink(user) {
   if(user === username())
     return
@@ -264,7 +353,7 @@ function followLink(user) {
       //just make it lossy (!)
     
       //in this case... just follow them.
-      console.log(followCache.get(user), followCache.get(user) ? 'UNFOLLOW' : 'FOLLOW')
+//      console.log(followCache.get(user), followCache.get(user) ? 'UNFOLLOW' : 'FOLLOW')
 
       if(db && !followCache.get(user)) {
         console.log('follow!', user)
@@ -285,19 +374,20 @@ function render (obj, query, user) {
 
   if(obj.type == 'tweet' || obj.type == 'feed')
     return h('div.item.tweet',
-      h('div.meta',
-        h('div.title.user', '@'+hl(obj.user), ' ', followLink(obj.user)),
-        h('span.date', new Date(obj.ts).toString())
-      ),
+      h('div.title',
+        h('div.meta',
+          h('span.date', rdate(new Date(obj.ts))),
+          ' ',
+          followLink(obj.user),
+          {title: new Date(obj.ts).toString()}
+        )),
+      h('div.title.user', '@'+hl(obj.user)),
       h('p.content.message', hl(obj.message))
     )
   else if (obj.type == 'user')
     return h('div.item.user',
-      h('div.meta',
-        h('div.title.user', hl(obj.realname)),
-        h('div.user', '@' + hl(obj.user), ' ', followLink(obj.user))
-      ),
-      h('p.centent.bio', hl(obj.bio))
+      h('div.title.user', hl('@' + obj.user), obj.realname, ' ', followLink(obj.user)),
+        h('div.title.user', hl(obj.bio))
     )
   else if(obj.type == 'follow')
     return h('div.item.follow', 

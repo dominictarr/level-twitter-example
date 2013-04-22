@@ -29,11 +29,28 @@ var auth = module.exports = function (db) {
             return cb(new Error('user already exists'))
           var salt = hash(Math.random())
 
-          authDb.put(user.name, {
-            password: hash(user.password + salt),
-            salt: salt,
-            name: user.name
-          }, function (err) {
+          db.batch([{
+            key: user.name,
+            value: {
+              password: hash(user.password + salt),
+              salt: salt,
+              name: user.name
+            },
+              type:'put',
+              prefix: authDb
+          },
+          {
+            key: user.name,
+            value: {
+              realname: '',
+              user: user.name,
+              bio: '',
+              type: 'user'
+            },
+            prefix: db.sublevel('user'),
+            type: 'put',
+          }]
+          , function (err) {
             if(err) cb(err)
             else cb(null, {
               name: user.name,

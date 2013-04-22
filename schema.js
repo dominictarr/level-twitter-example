@@ -60,6 +60,20 @@ module.exports = function (db) {
     
   }
 
+  db.query = function (obj, cb) {
+    var schema = types[obj.type]
+    if(!schema)
+      return cb(new Error('unknown type'))
+
+    var key = schema.primary.map(function (key) {
+      return obj[key]
+    }).join('!')
+
+    console.log('GET', obj)
+
+    db.sublevel(obj.type).get(key, cb)
+  }
+
   db.queryStream = function (query, opts) {
     if(!query.type)
       throw new Error('must provide "type"')

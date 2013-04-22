@@ -41,16 +41,39 @@ module.exports = function (path) {
     var user = tweet_id.split('!').shift()
     tweet.get(tweet_id, function (err, tweet) {
       pl.read(follow, {min: user + '!!', max: user+'!~'})
-      .pipe(pull.map(function (follow) {
-        return db.prepare({
+      .pipe(pull.collect(function (err, all) {
+        all = all.map(function (follow) {
+          return db.prepare({
+            type    : 'feed',
+            user    : tweet.user,
+            follower: follow.value.follower,
+            message : tweet.message,
+            ts      : tweet.ts
+          })
+        })
+
+        all.push(db.prepare({
           type    : 'feed',
           user    : tweet.user,
-          follower: follow.value.follower,
+          follower: tweet.user,
           message : tweet.message,
           ts      : tweet.ts
+        }))
+        console.log('@@', tweet.message.match(/@\w+/g))
+        var mentions = (tweet.message.match(/@\w+/g) || []).map(function (e) {
+          var at = e.substring(1)
+          all.push(db.prepare({
+            type    : 'feed',
+            user    : tweet.user,
+            follower: at,
+            message : tweet.message,
+            ts      : tweet.ts
+          }))
         })
+        console.log('mentions', mentions)
+        console.log('BATCH', all)
+        db.batch(all, done)
       }))
-      .pipe(pl.write(feed, done))
     })
   })
 

@@ -14,6 +14,7 @@ fs.writeFileSync('./manifest.json', JSON.stringify(manifest(db, true), null, 2))
 var _auth = auth(db)
 
 shoe(function (stream) {
+  stream.on('data', console.log)
   stream.pipe(multilevel.server(db, _auth).on('data', console.log)).pipe(stream)
 })
 .install(

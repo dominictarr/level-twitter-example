@@ -9,6 +9,8 @@ module.exports = function (obj, query, user) {
   function hl (str) {
     return str
   }
+  console.log('R', obj, query, user)
+  if(!obj) return ''
 
   if(obj.type == 'tweet' || obj.type == 'feed')
     return h('div.item.tweet',
@@ -31,14 +33,23 @@ module.exports = function (obj, query, user) {
       ),
       h('p.content.message', hl(obj.message))
     )
-  else if (obj.type == 'user')
+  else if (obj.type == 'user') {
+    console.log('R U', obj)
     return h('div.item.user',
       h('div.meta',
-        h('div.title.user', hl(obj.realname)),
-        h('div.user', '@' + hl(obj.user))
+        h('div.item', h('label', 'username:'),
+        h('div.title.user', hl(obj.user))
       ),
-      h('p.centent.bio', hl(obj.bio))
+      h('div.meta',
+        h('div.item', h('label', 'real name:'),
+        h('div.title.user', hl(obj.realname))
+      ),
+      h('div.meta',
+        h('div.item', h('label', 'bio:',),
+        h('div.title.user', hl(obj.bio))
+      )
     )
+  }
   else if(obj.type == 'follow')
     return h('div.item.follow', 
       h('div.meta',
