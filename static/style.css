@@ -99,6 +99,7 @@ h1 span {
   border: 1px solid hsla(45, 10%, 0%, 0.1);
   display: block;
   font-size: 18px;
+  margin-bottom: 2px;
 }
 
 #feed .title {}
