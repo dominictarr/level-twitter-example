@@ -283,15 +283,18 @@ function signUp () {
   )
 }
 
+//create a tab that focuses the current page.
+//like radio buttons.
 function to(human, machine) {
   return a(h('span', human, {
       className: o.transform(page, function (e) {
-        return e == human ? 'focus' : 'blur'
+        return (e == human || e == machine) ? 'focus' : 'blur'
       })
     }), function () {
       page(machine || human)
     })
 }
+
 var metadata = h('div', 'meta!')
 document.body.appendChild(
   h('div#container',
